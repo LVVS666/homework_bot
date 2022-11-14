@@ -83,12 +83,12 @@ def parse_status(homework):
     homework_name = homework['homework_name']
     homework_status = homework.get('status')
     if homework_status is None:
-        raise exceptions.KeyNoteHomework
+        raise exceptions.KeyNoteHomework('Статус домашней работы None')
     if homework_status is HOMEWORK_STATUSES:
         verdict = HOMEWORK_STATUSES.get('homework_status')
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
     else:
-        raise exceptions.Note_Status_Homework
+        raise exceptions.Note_Status_Homework('Статус отсутствует')
 
 
 def check_tokens():
@@ -96,7 +96,7 @@ def check_tokens():
     if all([PRACTICUM_TOKEN,
            TELEGRAM_TOKEN,
            TELEGRAM_CHAT_ID]) is None:
-        logging.error('TOKEN NOT_FOUND')
+        logging.error('Токен отсутствует')
         return False
     else:
         return True

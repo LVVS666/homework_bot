@@ -4,9 +4,9 @@ class HTTP_Status_error(Exception):
 
 class Note_Status_Homework(Exception):
     def __init__(self, text):
-        self.txt = 'Отсутствует статус запроса к API '
+        self.txt = text
 
 
 class KeyNoteHomework(Exception):
     def __init__(self, text):
-        self.txt = 'Отсутствует ключ в запросе к API'
+        self.txt = text

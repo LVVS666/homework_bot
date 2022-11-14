@@ -78,13 +78,18 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекает статус домашней работы."""
+    if 'homework_name' not in homework:
+        raise KeyError('Ключ “homework_name” отсутствует в словаре homework')
+    if 'status' not in homework:
+        raise KeyError('Ключ "status" отсутствует в словаре homework')
     homework_name = homework['homework_name']
     homework_status = homework.get('status')
-    if homework_status is HOMEWORK_STATUSES:
-        verdict = HOMEWORK_STATUSES[homework_status]
-        return f'Изменился статус проверки работы "{homework_name}". {verdict}'
-    else:
-        raise KeyError
+    if homework_status not in HOMEWORK_STATUSES:
+        raise Exception(
+            f'Неизвестный статус {homework_status} работы {homework_name}'
+        )
+    verdict = HOMEWORK_STATUSES[homework_status]
+    return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
 def check_tokens():

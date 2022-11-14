@@ -4,15 +4,13 @@ import time
 from http import HTTPStatus
 
 import requests
-import telegram
 from dotenv import load_dotenv
-
+import telegram
 
 import exceptions
 
 
 load_dotenv()
-
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -102,8 +100,8 @@ def check_tokens():
     for _, value in tokens.items():
         if value is None:
             return False
-       else:
-           return True
+        else:
+            return True
 
 
 def main():

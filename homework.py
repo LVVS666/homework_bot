@@ -80,10 +80,8 @@ def parse_status(homework):
     """Извлекает статус домашней работы."""
     homework_name = homework['homework_name']
     homework_status = homework.get('status')
-    if homework_status is None:
-        raise exceptions.KeyNoteHomework('Статус домашней работы None')
     if homework_status is HOMEWORK_STATUSES:
-        verdict = HOMEWORK_STATUSES.get('homework_status')
+        verdict = HOMEWORK_STATUSES[homework_status]
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
     else:
         raise KeyError

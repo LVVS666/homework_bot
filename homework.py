@@ -95,9 +95,9 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверяет доступность переменных окружения."""
-    if all(PRACTICUM_TOKEN,
+    if all([PRACTICUM_TOKEN,
            TELEGRAM_TOKEN,
-           TELEGRAM_CHAT_ID) is None:
+           TELEGRAM_CHAT_ID]) is None:
         logging.error('TOKEN NOT_FOUND')
         return False
     else:

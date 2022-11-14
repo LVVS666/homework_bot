@@ -80,7 +80,7 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекает статус домашней работы."""
-    homework_name = homework['name']
+    homework_name = homework['homework_name']
     homework_status = homework.get('status')
     if homework_status is None:
         raise exceptions.HTTP_Status_error(

@@ -1,11 +1,10 @@
 import logging
 import os
 import time
-import telegram
-
 from http import HTTPStatus
 
 import requests
+import telegram
 from dotenv import load_dotenv
 
 
@@ -13,6 +12,7 @@ import exceptions
 
 
 load_dotenv()
+
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -93,13 +93,17 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверяет доступность переменных окружения."""
-    if all([PRACTICUM_TOKEN,
-           TELEGRAM_TOKEN,
-           TELEGRAM_CHAT_ID]) is None:
-        logging.error('Токен отсутствует')
-        return False
-    else:
-        return True
+    tokens = {
+        'practicum_token': PRACTICUM_TOKEN,
+        'telegram_token': TELEGRAM_TOKEN,
+        'telegram_chat_token': TELEGRAM_CHAT_ID
+    }
+
+    for _, value in tokens.items():
+        if value is None:
+            return False
+       else:
+           return True
 
 
 def main():

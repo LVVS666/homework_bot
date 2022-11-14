@@ -83,14 +83,12 @@ def parse_status(homework):
     homework_name = homework['homework_name']
     homework_status = homework.get('status')
     if homework_status is None:
-        raise exceptions.HTTP_Status_error(
-            'Отстутвует ключ статуса проверки домашней работы'
-        )
+        raise exceptions.KeyNoteHomework
     if homework_status is HOMEWORK_STATUSES:
         verdict = HOMEWORK_STATUSES.get('homework_status')
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
     else:
-        raise Exception('Отсутствует статус домашней работы')
+        raise exceptions.Note_Status_Homework
 
 
 def check_tokens():

@@ -86,7 +86,7 @@ def parse_status(homework):
         verdict = HOMEWORK_STATUSES.get('homework_status')
         return f'Изменился статус проверки работы "{homework_name}". {verdict}'
     else:
-        raise exceptions.Note_Status_Homework('Статус отсутствует')
+        raise KeyError
 
 
 def check_tokens():

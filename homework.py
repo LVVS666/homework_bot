@@ -67,13 +67,13 @@ def get_api_answer(current_timestamp):
 
 def check_response(response):
     """Проверяет ответ API на корректность."""
-    if 'current_date' not in response.json():
+    if 'current_date' not in response:
         raise KeyError(
             'Ключ current_date в ответе API Яндекс.Практикум отсутствует'
         )
     else:
         timestamp = response['current_date']
-    if 'homeworks' not in response.json():
+    if 'homeworks' not in response:
         raise KeyError(
             'Ключ homeworks в ответе API Яндекс.Практикум отсутствует'
         )

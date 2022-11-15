@@ -1,8 +1,10 @@
 import logging
 import os
+import sys
 import time
 from http import HTTPStatus
 
+import telegram.error
 import requests
 from dotenv import load_dotenv
 import telegram
@@ -23,7 +25,7 @@ PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-RETRY_TIME = 600
+TELEGRAM_RETRY_TIME = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
@@ -39,41 +41,48 @@ def send_message(bot, message):
     """Отправляет сообщение в Telegram чат."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
-    except Exception as error:
-        print(f'Ошибка к обращению API  telegram {error}')
+    except telegram.error.TelegramError as error:
+        logging.error(f'Ошибка к обращению API  telegram {error}')
 
 
 def get_api_answer(current_timestamp):
     """Делает запрос к единственному эндпоинту API-сервиса."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
-    homework_response = requests.get(ENDPOINT, headers=HEADERS, params=params)
-    homework_statuses = homework_response.json()
-
-    if homework_response.status_code == HTTPStatus.OK:
-        return homework_statuses
-    else:
-        raise exceptions.HTTP_Status_error('Ошибка в обращении к API')
+    try:
+        homework_response = requests.get(ENDPOINT,
+                                         headers=HEADERS,
+                                         params=params
+                                         )
+        homework_statuses = homework_response.json()
+    except Exception:
+        raise requests.exceptions.RequestException(''
+                                                   'В ответ пришел '
+                                                   'некоретный формат'
+                                                   )
+    if homework_response.status_code != HTTPStatus.OK:
+        raise exceptions.HTTPStatusError('Ошибка в обращении к API')
+    return homework_statuses
 
 
 def check_response(response):
     """Проверяет ответ API на корректность."""
-    try:
-        timestamp = response['current_date']
-    except KeyError:
-        logging.error(
+    if 'current_date' not in response.json():
+        raise KeyError(
             'Ключ current_date в ответе API Яндекс.Практикум отсутствует'
         )
-    try:
-        homeworks = response['homeworks']
-    except KeyError:
-        logging.error(
+    else:
+        timestamp = response['current_date']
+    if 'homeworks' not in response.json():
+        raise KeyError(
             'Ключ homeworks в ответе API Яндекс.Практикум отсутствует'
         )
+    else:
+        homeworks = response['homeworks']
     if isinstance(timestamp, int) and isinstance(homeworks, list):
         return homeworks
     else:
-        raise Exception
+        raise exceptions.NoteAPIOuput('Ответ API не корректен.')
 
 
 def parse_status(homework):
@@ -102,6 +111,7 @@ def check_tokens():
 
     for _, value in tokens.items():
         if value is None:
+            logging.error(f'{value} токен отсутствует')
             return False
         else:
             return True
@@ -109,7 +119,9 @@ def check_tokens():
 
 def main():
     """Основная логика работы бота."""
-    if check_tokens():
+    if check_tokens() is None:
+        sys.exit(1)
+    else:
         bot = telegram.Bot(token=TELEGRAM_TOKEN)
         current_timestamp = int(time.time())
         while True:
@@ -122,11 +134,11 @@ def main():
                     send_message(bot, message)
                     count_homework -= 1
                     current_timestamp = int(time.time())
-                    time.sleep(RETRY_TIME)
             except Exception as error:
                 message = f'Сбой в работе программы: {error}'
                 send_message(bot, message)
-                time.sleep(RETRY_TIME)
+            finally:
+                time.sleep(TELEGRAM_RETRY_TIME)
 
 
 if __name__ == '__main__':

@@ -55,11 +55,12 @@ def get_api_answer(current_timestamp):
                                          params=params
                                          )
         homework_statuses = homework_response.json()
-    except Exception:
-        raise requests.exceptions.RequestException(''
-                                                   'В ответ пришел '
-                                                   'некоретный формат'
-                                                   )
+    except requests.exceptions.RequestException as original_error:
+        raise exceptions.NoCorrectFormat(''
+                                         'В ответ пришел '
+                                         'некоретный формат'
+                                         ) \
+            from original_error
     if homework_response.status_code != HTTPStatus.OK:
         raise exceptions.HTTPStatusError('Ошибка в обращении к API')
     return homework_statuses
@@ -71,18 +72,17 @@ def check_response(response):
         raise KeyError(
             'Ключ current_date в ответе API Яндекс.Практикум отсутствует'
         )
-    else:
-        timestamp = response['current_date']
     if not response['homeworks']:
         raise KeyError(
             'Ключ homeworks в ответе API Яндекс.Практикум отсутствует'
         )
-    else:
-        homeworks = response['homeworks']
-    if isinstance(timestamp, int) and isinstance(homeworks, list):
-        return homeworks
-    else:
-        raise exceptions.NoteAPIOuput('Ответ API не корректен.')
+    timestamp = response['current_date']
+    homeworks = response['homeworks']
+    if not isinstance(timestamp, int) and isinstance(homeworks, list):
+        raise exceptions.NoteAPIOuput('Формат ответа от API '
+                                      'несоответствует формату JSON.'
+                                      )
+    return homeworks
 
 
 def parse_status(homework):
@@ -94,7 +94,7 @@ def parse_status(homework):
     homework_name = homework['homework_name']
     homework_status = homework.get('status')
     if homework_status not in HOMEWORK_STATUSES:
-        raise Exception(
+        raise exceptions.UnknownStatus(
             f'Неизвестный статус {homework_status} работы {homework_name}'
         )
     verdict = HOMEWORK_STATUSES[homework_status]
@@ -110,35 +110,37 @@ def check_tokens():
     }
 
     for _, value in tokens.items():
+        list_tokken_missing = []
         if value is None:
-            logging.error(f'{value} токен отсутствует')
-            return False
+            list_tokken_missing.append(value)
         else:
             return True
+        logging.error(f'{list_tokken_missing} токены отсутствуют')
+        return False
 
 
 def main():
     """Основная логика работы бота."""
-    if check_tokens() is None:
+    if not check_tokens():
         sys.exit(1)
-    else:
-        bot = telegram.Bot(token=TELEGRAM_TOKEN)
-        current_timestamp = int(time.time())
-        while True:
-            try:
-                response = get_api_answer(current_timestamp)
-                homework = check_response(response)
-                count_homework = len(homework)
-                if count_homework > 0:
-                    message = parse_status(homework[count_homework - 1])
-                    send_message(bot, message)
-                    count_homework -= 1
-                    current_timestamp = int(time.time())
-            except Exception as error:
-                message = f'Сбой в работе программы: {error}'
+    bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    current_timestamp = int(time.time())
+    while True:
+        try:
+            response = get_api_answer(current_timestamp)
+            homework = check_response(response)
+            count_homework = len(homework)
+            if count_homework > 0:
+                message = parse_status(homework[count_homework - 1])
                 send_message(bot, message)
-            finally:
-                time.sleep(TELEGRAM_RETRY_TIME)
+                count_homework -= 1
+                current_timestamp = int(time.time())
+        except Exception as error:
+            message = f'Сбой в работе программы: {error}'
+            logging.exception(message)
+            send_message(bot, message)
+        finally:
+            time.sleep(TELEGRAM_RETRY_TIME)
 
 
 if __name__ == '__main__':

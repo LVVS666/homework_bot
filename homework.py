@@ -78,7 +78,7 @@ def check_response(response):
         )
     timestamp = response['current_date']
     homeworks = response['homeworks']
-    if not isinstance(timestamp, int) and isinstance(homeworks, list):
+    if not isinstance(timestamp, int) and not isinstance(homeworks, list):
         raise exceptions.NoteAPIOuput('Формат ответа от API '
                                       'несоответствует формату JSON.'
                                       )

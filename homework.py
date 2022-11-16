@@ -113,10 +113,11 @@ def check_tokens():
         list_tokken_missing = []
         if value is None:
             list_tokken_missing.append(value)
-        else:
+        if not list_tokken_missing:
             return True
-        logging.error(f'{list_tokken_missing} токены отсутствуют')
-        return False
+        else:
+            logging.error(f'{list_tokken_missing} токены отсутствуют')
+            return False
 
 
 def main():

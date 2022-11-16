@@ -72,17 +72,17 @@ def check_response(response):
         raise KeyError(
             'Ключ current_date в ответе API Яндекс.Практикум отсутствует'
         )
+    timestamp = response['current_date']
     if not response['homeworks']:
         raise KeyError(
             'Ключ homeworks в ответе API Яндекс.Практикум отсутствует'
         )
-    timestamp = response['current_date']
     homeworks = response['homeworks']
-    if not isinstance(timestamp, int) and isinstance(homeworks, list) is None:
-        raise exceptions.NoteAPIOuput('Формат ответа от API '
-                                      'несоответствует формату JSON.'
-                                      )
-    return homeworks
+    if isinstance(timestamp, int) and isinstance(homeworks, list):
+        return homeworks
+    raise exceptions.NoteAPIOuput('Формат ответа от API '
+                                  'несоответствует формату JSON.'
+                                  )
 
 
 def parse_status(homework):

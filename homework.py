@@ -59,7 +59,7 @@ def get_api_answer(current_timestamp):
         raise exceptions.NoCorrectFormat(''
                                          'В ответ пришел '
                                          'некоретный формат'
-                                         ) \
+                                         )\
             from original_error
     if homework_response.status_code != HTTPStatus.OK:
         raise exceptions.HTTPStatusError('Ошибка в обращении к API')
@@ -108,16 +108,15 @@ def check_tokens():
         'telegram_token': TELEGRAM_TOKEN,
         'telegram_chat_token': TELEGRAM_CHAT_ID
     }
-
+    list_tokken_missing = []
     for _, value in tokens.items():
-        list_tokken_missing = []
         if value is None:
             list_tokken_missing.append(value)
-        if not list_tokken_missing:
-            return True
-        else:
-            logging.error(f'{list_tokken_missing} токены отсутствуют')
-            return False
+    if not list_tokken_missing:
+        return True
+    else:
+        logging.error(f'{list_tokken_missing} токены отсутствуют')
+        return False
 
 
 def main():
